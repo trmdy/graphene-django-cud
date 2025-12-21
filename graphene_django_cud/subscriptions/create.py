@@ -13,7 +13,7 @@ from graphene_django.registry import get_global_registry
 from graphene_django_cud.consts import USE_MUTATION_SIGNALS_FOR_SUBSCRIPTIONS_KEY
 from graphene_django_cud.signals import post_create_mutation
 from graphene_django_cud.subscriptions.core import DjangoCudSubscriptionBase
-from graphene_django_cud.util import to_snake_case
+from graphene_django_cud.util.string import to_snake_case
 
 
 class DjangoCreateSubscriptionOptions(ObjectTypeOptions):

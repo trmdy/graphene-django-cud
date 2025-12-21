@@ -14,7 +14,7 @@ from graphene_django_cud.tests.factories import (
     FishFactory,
 )
 from graphene_django_cud.tests.models import User, Cat, Dog, Fish, DogRegistration, Mouse
-from graphene_django_cud.util import disambiguate_id
+from graphene_django_cud.util.model import disambiguate_id
 from graphene_django_cud.tests.dummy_query import DummyQuery
 
 

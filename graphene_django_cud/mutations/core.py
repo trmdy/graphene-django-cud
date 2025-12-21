@@ -7,7 +7,7 @@ from graphene.types.mutation import MutationOptions
 from graphql import GraphQLError
 
 from graphene_django_cud.registry import get_type_meta_registry
-from graphene_django_cud.util import (
+from graphene_django_cud.util.model import (
     get_likely_operation_from_name,
     disambiguate_id,
     get_fk_all_extras_field_names,

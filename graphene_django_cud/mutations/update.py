@@ -15,7 +15,8 @@ from graphene_django_cud.consts import USE_ID_SUFFIXES_FOR_FK_SETTINGS_KEY, USE_
 from graphene_django_cud.mutations.core import DjangoCudBaseOptions, DjangoCudBase
 from graphene_django_cud.registry import get_type_meta_registry
 from graphene_django_cud.signals import post_update_mutation
-from graphene_django_cud.util import get_input_fields_for_model, to_snake_case, apply_field_name_mappings
+from graphene_django_cud.util.model import get_input_fields_for_model, apply_field_name_mappings
+from graphene_django_cud.util.string import to_snake_case
 
 
 class DjangoUpdateMutationOptions(DjangoCudBaseOptions):
