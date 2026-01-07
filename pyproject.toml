@@ -7,7 +7,7 @@ license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.7"
-graphene-django = "^3.0"
+graphene-django = "^3.2.3"
 graphene-file-upload = "^1.2"
 
 [tool.poetry.dev-dependencies]
