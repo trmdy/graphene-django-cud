@@ -26,42 +26,49 @@ class UserNode(DjangoObjectType):
     class Meta:
         model = User
         interfaces = (Node,)
+        fields = "__all__"
 
 
 class CatNode(DjangoObjectType):
     class Meta:
         model = Cat
         interfaces = (Node,)
+        fields = "__all__"
 
 
 class DogNode(DjangoObjectType):
     class Meta:
         model = Dog
         interfaces = (Node,)
+        fields = "__all__"
 
 
 class DogRegistrationNode(DjangoObjectType):
     class Meta:
         model = DogRegistration
         interfaces = (Node,)
+        fields = "__all__"
 
 
 class MouseNode(DjangoObjectType):
     class Meta:
         model = Mouse
         interfaces = (Node,)
+        fields = "__all__"
 
 
 class CatUserRelationNode(DjangoObjectType):
     class Meta:
         model = CatUserRelation
         interfaces = (Node,)
+        fields = "__all__"
 
 
 class FishNode(DjangoObjectType):
     class Meta:
         model = Fish
         interfaces = (Node,)
+        fields = "__all__"
 
 
 class Query(graphene.ObjectType):

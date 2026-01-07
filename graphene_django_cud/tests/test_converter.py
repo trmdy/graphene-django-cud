@@ -92,7 +92,7 @@ class ConvertDjangoFieldWithChoices(TestCase):
         self.assertIsInstance(result, graphene.types.Enum)
         self.assertEqual(result.kwargs.get("required"), False)
 
-    # Exists to adress: https://github.com/tOgg1/graphene-django-cud/issues/9
+    # Exists to address: https://github.com/tOgg1/graphene-django-cud/issues/9
     def test__one_to_one_field__is_properly_converted(self):
         class MockSuperModel(models.Model):
             name = models.CharField(max_length=128, default="Heidi Klum")
