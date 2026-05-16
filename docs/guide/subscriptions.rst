@@ -1,4 +1,5 @@
 .. _subscriptions:
+
 ================================
 Subscriptions
 ================================
@@ -51,7 +52,7 @@ This will create a subscription that will be called whenever a new Cat is create
 
     {
       "data": {
-        "catUpdated": {
+        "catCreated": {
           "cat": {
             "id": "Q2F0Tm9kZTozNA==",
             "name": "fidus"
@@ -132,7 +133,7 @@ DjangoSignalSubscription
 This is a generic subscription class that can be used to hook into any Django signal and send some data back to the
 subscribing client.
 
-The structure of an implementation looks like this:is as follows:
+The structure of an implementation is as follows:
 
 
 .. code:: python
@@ -148,9 +149,6 @@ The structure of an implementation looks like this:is as follows:
         @classmethod
         def transform_signal_data(cls, data):
             return {"data_to_return": data.get("some_field", 0)}
-
-        class Meta:
-            signal = test_signal
 
 
     class Subscriptions(graphene.ObjectType):
@@ -243,7 +241,7 @@ To fix this, you currently have to explicitly preload all relations you want to 
             instance.owner
 
 
-Alternatively, you can reload the object in question with the relevant amount of `select_releated` and  `prefetch_related`
+Alternatively, you can reload the object in question with the relevant amount of `select_related` and  `prefetch_related`
 calls to the queryset:
 
 
@@ -262,14 +260,14 @@ calls to the queryset:
             return cat
 
 
-You can also use these methods to transform or manipulate the data in any way you like. Note that that handlers
+You can also use these methods to transform or manipulate the data in any way you like. Note that the handlers
 are running in a synchronous context.
 
 
 Library signals vs Django model signals
 ---------------------------------------
 
-By default, the library will use the `post_save`/`post_delete` signal to send data to the client. This will make sure all signals from
+By default, the library will use the `post_save`/`post_delete` signals to send data to the client. This will make sure all signals from
 any source are picked up.
 
 However, this has the downside that it will fire multiple times for create and update mutations, as typically multiple
@@ -325,7 +323,7 @@ the subscription classes:
     - kwargs: `created` (optional)
 - `DjangoDeleteSubscription`:
     - args: `sender` (added automatically)
-    - kwargs: Either `instance` with at least the attribute `id` or `pk`; or one of the following kwargs: `pk`, `raw_id, `input_id`, `id`.
+    - kwargs: Either `instance` with at least the attribute `id` or `pk`; or one of the following kwargs: `pk`, `raw_id`, `input_id`, `id`.
 
 You can also override the method `_model_created_handler`, `_model_updated_handler` or `_model_deleted_handler` to handle signals.
 Make sure you take a look at the current implementations of these to get an idea of how to call the subscriptions appropriately.

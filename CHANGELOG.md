@@ -1,8 +1,15 @@
 # Changelog
 
+## Unreleased
+
+* Clean up signals and subscriptions documentation.
+* Mention mutation lifecycle signals and experimental subscriptions in the README.
+* Fix Sphinx documentation build warnings.
+* Align `setup.py` dependencies with `pyproject.toml` for subscription support.
+
 ## Version 0.13.1
 
-* Add custom mutation lifecycle signals fired before and after CUD mutations complete.
+* Add custom mutation lifecycle signals fired after CUD mutations complete.
 * Add create, update, and delete subscription support.
 * Add ASGI/websocket URL support for subscriptions.
 * Add documentation for signals and subscriptions.

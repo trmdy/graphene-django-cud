@@ -19,7 +19,7 @@ The helper mutations are:
  * `DjangoFilterUpdateMutation`
  * `DjangoFilterDeleteMutation`
 
-The package handles both regular ids and relay ids automatically.
+The package handles both regular ids and relay ids automatically. It also includes mutation lifecycle signals and experimental subscription helpers for create, update, delete, and custom Django signal events.
 
 ## Installation
 
