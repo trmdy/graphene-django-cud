@@ -11,7 +11,7 @@ from graphene_django.registry import get_global_registry
 from requests import delete
 
 from graphene_django_cud.subscriptions.core import DjangoCudSubscriptionBase
-from graphene_django_cud.util import to_snake_case
+from graphene_django_cud.util.string import to_snake_case
 
 from graphene_django_cud.util.dict import get_any_of
 import logging

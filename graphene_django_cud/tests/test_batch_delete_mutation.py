@@ -9,7 +9,7 @@ from graphene_django_cud.mutations.batch_delete import DjangoBatchDeleteMutation
 from graphene_django_cud.tests.dummy_query import DummyQuery
 from graphene_django_cud.tests.factories import UserFactory
 from graphene_django_cud.tests.models import User
-from graphene_django_cud.util import disambiguate_ids
+from graphene_django_cud.util.model import disambiguate_ids
 
 
 class TestBatchDeleteMutation(TestCase):

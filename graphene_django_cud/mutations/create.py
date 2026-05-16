@@ -16,7 +16,7 @@ from graphene_django_cud.consts import USE_ID_SUFFIXES_FOR_FK_SETTINGS_KEY, USE_
 from graphene_django_cud.mutations.core import DjangoCudBase, DjangoCudBaseOptions
 from graphene_django_cud.registry import get_type_meta_registry
 from graphene_django_cud.signals import post_create_mutation
-from graphene_django_cud.util import get_input_fields_for_model, apply_field_name_mappings
+from graphene_django_cud.util.model import get_input_fields_for_model, apply_field_name_mappings
 
 
 class DjangoCreateMutationOptions(DjangoCudBaseOptions):

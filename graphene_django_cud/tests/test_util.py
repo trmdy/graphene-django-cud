@@ -1,6 +1,6 @@
 import graphene
 from django.test import TestCase
-from graphene_django_cud.util import get_input_fields_for_model
+from graphene_django_cud.util.model import get_input_fields_for_model
 from graphene_django_cud.tests.models import Mouse
 
 

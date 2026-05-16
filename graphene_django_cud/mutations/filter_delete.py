@@ -13,7 +13,7 @@ from graphql_relay import to_global_id
 
 from graphene_django_cud.mutations.core import DjangoCudBase
 from graphene_django_cud.signals import post_filter_update_mutation, post_filter_delete_mutation
-from graphene_django_cud.util import get_filter_fields_input_args
+from graphene_django_cud.util.model import get_filter_fields_input_args
 
 
 class DjangoFilterDeleteMutationOptions(MutationOptions):

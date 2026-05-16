@@ -14,7 +14,7 @@ from graphql import GraphQLError
 
 from graphene_django_cud.mutations.core import DjangoCudBase, meta_registry
 from graphene_django_cud.signals import post_filter_update_mutation
-from graphene_django_cud.util import (
+from graphene_django_cud.util.model import (
     get_filter_fields_input_args,
     get_input_fields_for_model,
 )
