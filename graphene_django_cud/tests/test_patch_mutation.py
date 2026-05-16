@@ -14,7 +14,7 @@ from graphene_django_cud.tests.factories import (
 )
 from graphene_django_cud.tests.dummy_query import DummyQuery
 from graphene_django_cud.tests.models import User, Cat, Dog
-from graphene_django_cud.util.model import disambiguate_id
+from graphene_django_cud.util import disambiguate_id
 
 
 def mock_info(context=None):
