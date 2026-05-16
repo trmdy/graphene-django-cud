@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 0.13.1
+
+* Fix circular imports when importing converters (thanks @hansegucker).
+* Keep `graphene_django_cud.util` backwards-compatible via lazy exports.
+
 ## Version 0.13.0
 
 * Add support for field name mappings.
