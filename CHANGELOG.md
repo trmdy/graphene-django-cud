@@ -2,8 +2,17 @@
 
 ## Version 0.13.1
 
+* Add custom mutation lifecycle signals fired before and after CUD mutations complete.
+* Add create, update, and delete subscription support.
+* Add ASGI/websocket URL support for subscriptions.
+* Add documentation for signals and subscriptions.
+* Fix Relay ID resolution for `foreign_key_extras` with type `ID`.
+* Add `"ID"` field handling to many-to-many exact auto object type generation.
+* Fix typo in model utility error message.
 * Fix circular imports when importing converters (thanks @hansegucker).
 * Keep `graphene_django_cud.util` backwards-compatible via lazy exports.
+* Apply Black formatting across the codebase.
+* Bump development dependency `jinja2` from `3.1.4` to `3.1.5`.
 
 ## Version 0.13.0
 
