@@ -2,7 +2,6 @@
 
 ## Unreleased
 
-* Raise the minimum supported `graphene-django` version to 3.2.3.
 * Clean up signals and subscriptions documentation.
 * Mention mutation lifecycle signals and experimental subscriptions in the README.
 * Fix Sphinx documentation build warnings.
