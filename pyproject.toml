@@ -14,7 +14,7 @@ gunicorn = "^23.0.0"
 
 [tool.poetry.dev-dependencies]
 django = "^5.1.15"
-pytest = "^7.4"
+pytest = "^9.0"
 pytest-django = "^4.0"
 factory_boy = "^3.2"
 addict = "^2.2"
