@@ -196,6 +196,11 @@ class DjangoCudBase(Mutation):
                     )
                     results.append(related_obj)
                 else:
+                    # Ensure the parent relation exists.
+                    # If no parent id was passed, set to passed parent obj's id.
+                    if not hasattr(value, field.field.name) or value[field.field.name] is None:
+                        value[field.field.name] = obj.pk
+
                     # Create new obj
                     related_obj = cls.create_obj(
                         value,
