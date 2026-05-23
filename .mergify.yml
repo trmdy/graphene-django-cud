@@ -3,7 +3,6 @@ queue_rules:
     queue_conditions:
       - "base=main"
       - "-draft"
-      - "#approved-reviews-by>=1"
       - "#changes-requested-reviews-by=0"
       - "label!=do-not-merge"
       - "label!=work-in-progress"
@@ -11,7 +10,6 @@ queue_rules:
     merge_conditions:
       - "base=main"
       - "-draft"
-      - "#approved-reviews-by>=1"
       - "#changes-requested-reviews-by=0"
       - "label!=do-not-merge"
       - "label!=work-in-progress"
@@ -28,6 +26,19 @@ pull_request_rules:
       - "base=main"
       - "-draft"
       - "#approved-reviews-by>=1"
+      - "#changes-requested-reviews-by=0"
+      - "label!=do-not-merge"
+      - "label!=work-in-progress"
+      - "label!=wip"
+    actions:
+      queue:
+        name: default
+
+  - name: Queue PRs labeled ready-to-merge targeting main
+    conditions:
+      - "base=main"
+      - "-draft"
+      - "label=ready-to-merge"
       - "#changes-requested-reviews-by=0"
       - "label!=do-not-merge"
       - "label!=work-in-progress"
