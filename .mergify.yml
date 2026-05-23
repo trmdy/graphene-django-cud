@@ -1,0 +1,37 @@
+queue_rules:
+  - name: default
+    queue_conditions:
+      - "base=main"
+      - "-draft"
+      - "#approved-reviews-by>=1"
+      - "#changes-requested-reviews-by=0"
+      - "label!=do-not-merge"
+      - "label!=work-in-progress"
+      - "label!=wip"
+    merge_conditions:
+      - "base=main"
+      - "-draft"
+      - "#approved-reviews-by>=1"
+      - "#changes-requested-reviews-by=0"
+      - "label!=do-not-merge"
+      - "label!=work-in-progress"
+      - "label!=wip"
+      - "check-success=test (3.9, 1.8.3)"
+      - "check-success=test (3.10, 1.8.3)"
+      - "check-success=test (3.11, 1.8.3)"
+      - "check-success=test (3.12, 1.8.3)"
+    merge_method: squash
+
+pull_request_rules:
+  - name: Queue approved PRs targeting main
+    conditions:
+      - "base=main"
+      - "-draft"
+      - "#approved-reviews-by>=1"
+      - "#changes-requested-reviews-by=0"
+      - "label!=do-not-merge"
+      - "label!=work-in-progress"
+      - "label!=wip"
+    actions:
+      queue:
+        name: default
