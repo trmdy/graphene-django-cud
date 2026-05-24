@@ -1,7 +1,9 @@
 import enum
 from typing import Iterable, Union, Sized
 
+import django
 from django.db import models
+from django.db.models import Q
 from graphene import Mutation
 from graphene.types.mutation import MutationOptions
 from graphql import GraphQLError
@@ -193,6 +195,8 @@ class DjangoCudBase(Mutation):
                         one_to_one_extras,
                         field_name_mappings,
                         field.related_model,
+                        field_lookup=data.get("field_lookup"),
+                        parent_obj=obj,
                     )
                     results.append(related_obj)
                 else:
@@ -236,9 +240,41 @@ class DjangoCudBase(Mutation):
         one_to_one_extras,
         field_name_mappings,
         Model,
+        field_lookup=None,
+        parent_obj=None,
     ):
-        id = cls.resolve_id(input.get("id"))
-        obj = Model.objects.filter(pk=id).first()
+        if field_lookup:
+            field_lookup_list = field_lookup if isinstance(field_lookup, list) else [field_lookup]
+            expr = Q()
+            for field_data in field_lookup_list:
+                if isinstance(field_data, str):
+                    field = field_data
+                    if field not in input:
+                        raise ValueError(f"Field lookup {field} not found in input {input}")
+                else:
+                    field = field_data.get("field")
+                    remote_field = field_data.get("remote_field")
+                    filter_field = field_data.get("filter")
+                    if field not in input:
+                        raise ValueError(f"Field lookup {field} not found in input {input}")
+                    related_obj_expr = Q()
+                    if remote_field:
+                        related_obj_expr &= Q(**{remote_field: input[field]})
+                    if filter_field:
+                        related_obj_expr &= Q(**{filter_field: getattr(parent_obj, filter_field)})
+                    related_model = Model._meta.get_field(field).related_model
+                    if related_obj := related_model.objects.filter(related_obj_expr).first():
+                        input[field] = related_obj.pk
+                expr &= Q(**{field: input[field]})
+            obj = Model.objects.filter(expr).first()
+        else:
+            id = cls.resolve_id(input.get("id"))
+            composite_pk_cls = getattr(getattr(django.db.models.fields, "composite", None), "CompositePrimaryKey", None)
+            if composite_pk_cls and isinstance(Model._meta.pk, composite_pk_cls):
+                id_to_use = (id, id)
+                obj = Model.objects.filter(pk=id_to_use).first()
+            else:
+                obj = Model.objects.filter(pk=id).first()
 
         if obj:
             obj = cls.update_obj(

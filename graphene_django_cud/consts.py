@@ -1,5 +1,3 @@
-from django.conf import settings
-
 OPERATION_UPDATE = "update"
 OPERATION_DELETE = "delete"
 OPERATION_CREATE = "create"

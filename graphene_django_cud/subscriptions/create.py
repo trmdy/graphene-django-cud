@@ -79,7 +79,7 @@ class DjangoCreateSubscription(DjangoCudSubscriptionBase):
     def _model_created_handler(cls, sender, instance, created=None, **kwargs):
         """Handle model creation and notify subscribers"""
         if created or created is None:
-            print(sender, instance, created, kwargs)
+            #print(sender, instance, created, kwargs)
             new_instance = cls.handle_object_created(sender, instance, **kwargs)
 
             assert new_instance is None or isinstance(new_instance, cls._meta.model)

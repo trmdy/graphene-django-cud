@@ -2,7 +2,6 @@ import datetime
 import re
 
 import graphene
-from django.utils import timezone
 from graphql import GraphQLError
 from graphql.language import ast
 
@@ -53,4 +52,4 @@ class TimeDelta(graphene.Scalar):
         if seconds:
             seconds = int(seconds)
 
-        return timezone.timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds)
+        return datetime.timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds)

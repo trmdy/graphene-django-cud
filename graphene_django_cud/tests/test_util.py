@@ -33,3 +33,16 @@ class TestGetInputFieldsForModel(TestCase):
         self.assertIn("name", fields)
         self.assertIn("keeper_id", fields)
         self.assertIn("predators_ids", fields)
+
+    def test__field_name_mappings_with_field_types__uses_mapped_names(self):
+        fields = get_input_fields_for_model(
+            Mouse,
+            ("name", "keeper", "predators"),
+            (),
+            field_types={"keeper": graphene.ID()},
+            field_name_mappings={"keeper": "keeper_id"},
+        )
+
+        self.assertIn("keeper_id", fields)
+        self.assertNotIn("keeper", fields)
+        self.assertIsInstance(fields["keeper_id"], graphene.ID)

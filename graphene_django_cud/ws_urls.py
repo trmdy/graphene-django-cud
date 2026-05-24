@@ -14,7 +14,8 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 import luna_ws
-from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import path
 
-urlpatterns = [path("graphql", luna_ws.GraphQLSubscriptionHandler)]
+urlpatterns = [
+    path("graphql", luna_ws.GraphQLSubscriptionHandler)
+]

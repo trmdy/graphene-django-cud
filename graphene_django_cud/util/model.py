@@ -41,17 +41,16 @@ def disambiguate_id(ambiguous_id: Union[int, float, str, uuid.UUID]):
         pass
 
     if isinstance(ambiguous_id, str):
-        try:
-            _id = from_global_id(ambiguous_id)[1]
-
-            if _id:
-                return _id
-        except (ValueError, TypeError, binascii.Error):
-            pass
-
+        # Prefer UUID parsing before global-id decoding to avoid
+        # misclassifying raw UUID strings as base64 relay IDs.
         try:
             return uuid.UUID(ambiguous_id)
         except (ValueError, TypeError, AttributeError):
+            pass
+
+        try:
+            return from_global_id(ambiguous_id)[1]
+        except (ValueError, TypeError, binascii.Error):
             pass
 
         return ambiguous_id
@@ -148,7 +147,8 @@ def get_input_fields_for_model(
 
         # If the field has an override, use that
         if name in field_types:
-            converted_input_fields[name] = field_types[name]
+            # Use the mapped name as the final input name exposed in the API.
+            converted_input_fields[mapped_name] = field_types[name]
             continue
 
         # Save for later

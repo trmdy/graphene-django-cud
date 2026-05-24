@@ -1527,6 +1527,69 @@ class TestUpdateMutationManyToOneExtras(TestCase):
         user.refresh_from_db()
         self.assertEqual(user.cats.all().count(), 5)
 
+    def test_many_to_one_extras__field_lookup__upserts_by_fields(self):
+        # This registers the UserNode type
+        from .schema import UserNode  # noqa: F401
+
+        class UpdateUserMutation(DjangoUpdateMutation):
+            class Meta:
+                model = User
+                exclude = ("password",)
+                many_to_one_extras = {
+                    "dogs": {
+                        "exact": {
+                            "type": "auto",
+                            "field_lookup": ["tag", "owner"],
+                        }
+                    }
+                }
+
+        class Mutations(graphene.ObjectType):
+            update_user = UpdateUserMutation.Field()
+
+        user = UserFactory.create()
+        dog = DogFactory.create(owner=user, tag="Dog-1", name="Old Name", breed="HUSKY")
+
+        schema = Schema(query=DummyQuery, mutation=Mutations)
+        mutation = """
+            mutation UpdateUser(
+                $id: ID!,
+                $input: UpdateUserInput!
+            ){
+                updateUser(id: $id, input: $input){
+                    user{
+                        id
+                    }
+                }
+            }
+        """
+
+        result = schema.execute(
+            mutation,
+            variables={
+                "id": to_global_id("UserNode", user.id),
+                "input": {
+                    "username": user.username,
+                    "firstName": user.first_name,
+                    "lastName": user.last_name,
+                    "email": user.email,
+                    "dogs": [
+                        {
+                            "tag": "Dog-1",
+                            "name": "New Name",
+                            "breed": "HUSKY",
+                        }
+                    ],
+                },
+            },
+            context=Dict(user=user),
+        )
+        self.assertIsNone(result.errors)
+
+        dog.refresh_from_db()
+        self.assertEqual(Dog.objects.count(), 1)
+        self.assertEqual(dog.name, "New Name")
+
     def test_many_to_one_extras__remove_extra_by_id__removes_by_id(self):
         # This registers the UserNode type
         from .schema import UserNode  # noqa: F401
