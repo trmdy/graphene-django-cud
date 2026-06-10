@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Modernize the CI test matrix: drop EOL Python 3.9 (also below the `python = "^3.10"` floor), add
+  Python 3.13 and 3.14, and add explicit Django 4.2/5.1/5.2 coverage. Remove the dead Travis config.
 * Clean up signals and subscriptions documentation.
 * Mention mutation lifecycle signals and experimental subscriptions in the README.
 * Fix Sphinx documentation build warnings.
