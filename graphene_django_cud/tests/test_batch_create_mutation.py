@@ -216,3 +216,48 @@ class TestBatchCreateMutation(TestCase):
         second_mouse_predators = list(map(lambda edge: edge.node, second_mouse.predators.edges))
         self.assertEqual(1, len(second_mouse_predators))
         self.assertEqual(to_global_id("CatNode", cat_two.id), second_mouse_predators[0].id)
+
+
+class TestBatchCreateBeforeCreateSingleObjHook(TestCase):
+    def test__before_create_single_obj__alters_each_items_input(self):
+        # Feature test for #126: a hook for altering a single object's input data
+        # in a batch create mutation.
+        from .schema import UserNode  # noqa: F401
+
+        class BatchCreateMouseMutation(DjangoBatchCreateMutation):
+            class Meta:
+                model = Mouse
+
+            @classmethod
+            def before_create_single_obj(cls, root, info, input, full_input):
+                input["name"] = "prefix-" + input["name"]
+                return input
+
+        class Mutations(graphene.ObjectType):
+            batch_create_mouse = BatchCreateMouseMutation.Field()
+
+        user = UserFactory.create()
+        schema = Schema(query=DummyQuery, mutation=Mutations)
+        mutation = """
+            mutation BatchCreateMouse(
+                $input: [BatchCreateMouseInput]!
+            ){
+                batchCreateMouse(input: $input){
+                    mouses{
+                        id
+                        name
+                    }
+                }
+            }
+        """
+        result = schema.execute(
+            mutation,
+            variables={"input": [{"name": "Jerry"}, {"name": "Tom"}]},
+            context=Dict(user=user),
+        )
+
+        self.assertIsNone(result.errors)
+        self.assertEqual(
+            ["prefix-Jerry", "prefix-Tom"],
+            sorted(mouse.name for mouse in Mouse.objects.all()),
+        )

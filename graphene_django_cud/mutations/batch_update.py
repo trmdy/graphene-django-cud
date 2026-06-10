@@ -209,6 +209,10 @@ class DjangoBatchUpdateMutation(DjangoCudBase):
         return super().after_mutate(root, info, input, updated_objs, return_data)
 
     @classmethod
+    def before_update_single_obj(cls, root, info, input, full_input):
+        return None
+
+    @classmethod
     def after_update_obj(cls, root, info, input, obj, full_input):
         return None
 
@@ -238,6 +242,10 @@ class DjangoBatchUpdateMutation(DjangoCudBase):
 
         with transaction.atomic():
             for data in input:
+                updated_data = cls.before_update_single_obj(root, info, data, input)
+                if updated_data is not None:
+                    data = updated_data
+
                 cls.validate(root, info, data, input)
                 obj = cls.get_object(root, info, data, input)
 
