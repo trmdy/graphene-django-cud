@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+* Add a `get_or_create` option to `foreign_key_extras`, reusing a matching existing related object
+  instead of always creating a new one (#128). Accepts a list of field names to match on, or `True`.
 * Clean up signals and subscriptions documentation.
 * Mention mutation lifecycle signals and experimental subscriptions in the README.
 * Fix Sphinx documentation build warnings.

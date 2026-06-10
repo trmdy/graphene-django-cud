@@ -33,6 +33,19 @@ class DjangoCudBase(Mutation):
             return cls.resolve_id(value)
         else:
             input_type_meta = meta_registry.get_meta_for_type(field_type)
+
+            # Optionally reuse an existing related object instead of always
+            # creating a new one (see #128). `get_or_create` is either `True`
+            # (match on every concrete field present in the input) or a list of
+            # field names to match on. If a matching object is found it is reused;
+            # otherwise a new object is created below.
+            get_or_create = data.get("get_or_create")
+            if get_or_create:
+                lookup = cls.get_foreign_key_lookup(field.related_model, value, get_or_create)
+                existing_obj = field.related_model.objects.filter(**lookup).first() if lookup else None
+                if existing_obj is not None:
+                    return existing_obj.pk
+
             # Create new obj
             related_obj = cls.create_obj(
                 value,
@@ -46,6 +59,41 @@ class DjangoCudBase(Mutation):
                 field.related_model,
             )
             return related_obj.pk
+
+    @classmethod
+    def get_foreign_key_lookup(cls, related_model, value, get_or_create):
+        """
+        Build a filter lookup for the ``get_or_create`` option of
+        ``foreign_key_extras`` from the provided related-object input ``value``.
+
+        ``get_or_create`` is either ``True`` (use every concrete field present in
+        the input) or an iterable of field names. Only concrete model fields are
+        used; foreign keys are resolved via ``resolve_id`` and enum values are
+        unwrapped.
+        """
+        if get_or_create is True:
+            field_names = [name for name, _ in super(type(value), value).items()]
+        else:
+            field_names = list(get_or_create)
+
+        lookup = {}
+        for name in field_names:
+            related_field = get_model_field_or_none(name, related_model)
+            if related_field is None or not getattr(related_field, "concrete", False):
+                continue
+
+            lookup_value = value.get(name)
+            if lookup_value is None:
+                continue
+
+            if related_field.is_relation:
+                lookup[related_field.attname] = cls.resolve_id(lookup_value)
+            elif isinstance(lookup_value, enum.Enum):
+                lookup[name] = lookup_value.value
+            else:
+                lookup[name] = lookup_value
+
+        return lookup
 
     @classmethod
     def create_or_update_one_to_one_relation(cls, obj, field, value, data, info):
