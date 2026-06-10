@@ -71,6 +71,17 @@ These hooks are class methods of a mutation, which can be overridden with custom
 | **2:** You can optionally modify and return the ORM objects in ``created_objects`` or ``updated_objects``.
 | **3:** You can optionally modify and return the querysets.
 
+For create and update mutations, ``before_save`` runs *before* the object is persisted to the
+database. This means you can assign required fields here — for example a foreign key that is
+excluded from the mutation input — without tripping a database constraint:
+
+.. code-block:: python
+
+    @classmethod
+    def before_save(cls, root, info, input, obj):
+        obj.owner = info.context.user
+        return obj
+
 ``after_mutate``
 -------------------
 

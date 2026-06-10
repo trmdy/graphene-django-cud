@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Fix `before_save` not running before the initial save on create mutations, so a required field
+  (e.g. a foreign key excluded from the input) can now be assigned there without tripping a
+  database constraint (#83). On create, `before_save` now runs before the object is first persisted.
 * Clean up signals and subscriptions documentation.
 * Mention mutation lifecycle signals and experimental subscriptions in the README.
 * Fix Sphinx documentation build warnings.
