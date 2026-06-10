@@ -101,3 +101,34 @@ These hooks are class methods of a mutation, which can be overridden with custom
     -
 
 | **1:** You can modify and return the ``return_data`` argument.
+
+``before_create_single_obj`` / ``before_update_single_obj``
+-----------------------------------------------------------
+
+These hooks are specific to the batch mutations and are called once per item,
+*before* that item is validated and turned into an object. They let you alter a
+single object's input data (for example, injecting a field on every row). The
+single item's input is passed as ``input`` and the full list as ``full_input``.
+
+.. list-table::
+  :widths: 35 65 10
+  :header-rows: 1
+
+  * - Mutation
+    - Arguments
+    - Note
+  * - batch_create
+    - cls, root, info, input, full_input
+    - 1
+  * - batch_patch/batch_update
+    - cls, root, info, input, full_input
+    - 1
+
+| **1:** You can optionally modify and return the single item's ``input``. Returning ``None`` leaves the input unchanged. Modifying ``input`` in place is also supported.
+
+.. code-block:: python
+
+    @classmethod
+    def before_create_single_obj(cls, root, info, input, full_input):
+        input["created_by_id"] = info.context.user.id
+        return input

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Add `before_create_single_obj`/`before_update_single_obj` hooks to the batch create and
+  batch update/patch mutations, allowing a single object's input data to be altered before it is
+  validated and processed (#126).
 * Clean up signals and subscriptions documentation.
 * Mention mutation lifecycle signals and experimental subscriptions in the README.
 * Fix Sphinx documentation build warnings.

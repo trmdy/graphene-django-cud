@@ -211,3 +211,57 @@ class TestBatchUpdateMutation(TestCase):
         second_mouse_predators = list(map(lambda edge: edge.node, second_mouse.predators.edges))
         self.assertEqual(1, len(second_mouse_predators))
         self.assertEqual(to_global_id("CatNode", cat_two.id), second_mouse_predators[0].id)
+
+
+class TestBatchUpdateBeforeUpdateSingleObjHook(TestCase):
+    def test__before_update_single_obj__alters_each_items_input(self):
+        # Feature test for #126: a hook for altering a single object's input data
+        # in a batch update mutation.
+        from .schema import UserNode  # noqa: F401
+
+        class BatchUpdateMouseMutation(DjangoBatchUpdateMutation):
+            class Meta:
+                model = Mouse
+
+            @classmethod
+            def before_update_single_obj(cls, root, info, input, full_input):
+                input["name"] = "prefix-" + input["name"]
+                return input
+
+        class Mutations(graphene.ObjectType):
+            batch_update_mouse = BatchUpdateMouseMutation.Field()
+
+        user = UserFactory.create()
+        mouse_1 = MouseFactory.create(name="Jerry")
+        mouse_2 = MouseFactory.create(name="Tom")
+
+        schema = Schema(query=DummyQuery, mutation=Mutations)
+        mutation = """
+            mutation BatchUpdateMouse(
+                $input: [BatchUpdateMouseInput]!
+            ){
+                batchUpdateMouse(input: $input){
+                    mouses{
+                        id
+                        name
+                    }
+                }
+            }
+        """
+        result = schema.execute(
+            mutation,
+            variables={
+                "input": [
+                    {"id": to_global_id("MouseNode", mouse_1.id), "name": "Jerry"},
+                    {"id": to_global_id("MouseNode", mouse_2.id), "name": "Tom"},
+                ]
+            },
+            context=Dict(user=user),
+        )
+
+        self.assertIsNone(result.errors)
+
+        mouse_1.refresh_from_db()
+        mouse_2.refresh_from_db()
+        self.assertEqual("prefix-Jerry", mouse_1.name)
+        self.assertEqual("prefix-Tom", mouse_2.name)
