@@ -958,6 +958,106 @@ class TestCreateMutationCustomFields(TestCase):
         self.assertEqual(0, result.data["createDog"]["dog"]["barkCount"])
 
 
+class TestCreateMutationOptionalForeignKeyExtras(TestCase):
+    def test__optional_fk_with_auto_extra__can_be_omitted(self):
+        # Regression test for #127 (and #96). A nullable foreign key declared in
+        # `foreign_key_extras` with an auto/custom type must be omittable. Omitting
+        # it should leave the relation null instead of crashing while attempting to
+        # build a related object from a missing value.
+        from .schema import UserNode  # noqa: F401
+
+        class CreateMouseMutation(DjangoCreateMutation):
+            class Meta:
+                model = Mouse
+                foreign_key_extras = {"keeper": {"type": "auto"}}
+
+        class Mutations(graphene.ObjectType):
+            create_mouse = CreateMouseMutation.Field()
+
+        user = UserFactory.create()
+        schema = Schema(query=DummyQuery, mutation=Mutations)
+        mutation = """
+            mutation CreateMouse(
+                $input: CreateMouseInput!
+            ){
+                createMouse(input: $input){
+                    mouse{
+                        id
+                        name
+                        keeper{
+                            id
+                        }
+                    }
+                }
+            }
+        """
+        result = schema.execute(
+            mutation,
+            variables={"input": {"name": "Jerry"}},
+            context=Dict(user=user),
+        )
+
+        self.assertIsNone(result.errors)
+        self.assertEqual(1, Mouse.objects.count())
+
+        mouse = Mouse.objects.first()
+        self.assertIsNone(mouse.keeper)
+        self.assertEqual("Jerry", mouse.name)
+
+    def test__optional_fk_with_id_extra__is_omittable_and_resolves_when_provided(self):
+        # The happy path must still work after #127: providing the foreign key
+        # resolves it; omitting it leaves the relation null.
+        from .schema import UserNode  # noqa: F401
+
+        class CreateMouseMutation(DjangoCreateMutation):
+            class Meta:
+                model = Mouse
+                foreign_key_extras = {"keeper": {"type": "ID"}}
+
+        class Mutations(graphene.ObjectType):
+            create_mouse = CreateMouseMutation.Field()
+
+        user = UserFactory.create()
+        schema = Schema(query=DummyQuery, mutation=Mutations)
+        mutation = """
+            mutation CreateMouse(
+                $input: CreateMouseInput!
+            ){
+                createMouse(input: $input){
+                    mouse{
+                        id
+                        keeper{
+                            id
+                        }
+                    }
+                }
+            }
+        """
+
+        # Omitted -> relation is left null.
+        result = schema.execute(
+            mutation,
+            variables={"input": {"name": "Jerry"}},
+            context=Dict(user=user),
+        )
+        self.assertIsNone(result.errors)
+        self.assertIsNone(Mouse.objects.get().keeper)
+
+        # Provided -> relation is resolved.
+        result = schema.execute(
+            mutation,
+            variables={
+                "input": {
+                    "name": "Tom",
+                    "keeper": to_global_id("UserNode", user.id),
+                }
+            },
+            context=Dict(user=user),
+        )
+        self.assertIsNone(result.errors)
+        self.assertEqual(user, Mouse.objects.get(name="Tom").keeper)
+
+
 class TestCreateWithManyToManyThroughModel(TestCase):
     def test__creating_a_related_entity_with_a_through_model__works_as_intended(self):
         # This registers the UserNode type

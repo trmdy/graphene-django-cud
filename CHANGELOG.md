@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Support optional foreign keys declared in `foreign_key_extras` (#127, #96). An omitted foreign key
+  is now left unset on create and unchanged on update/patch, instead of crashing with
+  `'super' object has no attribute 'items'` (auto/custom types) or silently clearing the relation.
 * Clean up signals and subscriptions documentation.
 * Mention mutation lifecycle signals and experimental subscriptions in the README.
 * Fix Sphinx documentation build warnings.
