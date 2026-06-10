@@ -1883,3 +1883,54 @@ class TestUpdateWithOneToOneField(TestCase):
         dog.refresh_from_db()
 
         self.assertEqual(dog.breed, "LABRADOR")
+
+
+class TestUpdateMutationOptionalForeignKeyExtras(TestCase):
+    def test__omitted_fk_extra__leaves_relation_unchanged(self):
+        # Regression test for #127. On update/patch, omitting a foreign key
+        # declared in `foreign_key_extras` must leave the existing relation
+        # untouched instead of clearing it (or crashing).
+        from .schema import UserNode  # noqa: F401
+
+        class UpdateMouseMutation(DjangoUpdateMutation):
+            class Meta:
+                model = Mouse
+                foreign_key_extras = {"keeper": {"type": "ID"}}
+
+        class Mutations(graphene.ObjectType):
+            update_mouse = UpdateMouseMutation.Field()
+
+        keeper = UserFactory.create()
+        mouse = MouseFactory.create(name="Jerry", keeper=keeper)
+
+        schema = Schema(query=DummyQuery, mutation=Mutations)
+        mutation = """
+            mutation UpdateMouse(
+                $id: ID!,
+                $input: UpdateMouseInput!
+            ){
+                updateMouse(id: $id, input: $input){
+                    mouse{
+                        id
+                        name
+                        keeper{
+                            id
+                        }
+                    }
+                }
+            }
+        """
+        result = schema.execute(
+            mutation,
+            variables={
+                "id": to_global_id("MouseNode", mouse.id),
+                "input": {"name": "Tom"},
+            },
+            context=Dict(user=keeper),
+        )
+
+        self.assertIsNone(result.errors)
+
+        mouse.refresh_from_db()
+        self.assertEqual("Tom", mouse.name)
+        self.assertEqual(keeper, mouse.keeper)

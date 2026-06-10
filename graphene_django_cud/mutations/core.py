@@ -394,6 +394,13 @@ class DjangoCudBase(Mutation):
         # parents before proceeding.
         for name, extras in foreign_key_extras.items():
             value = input.get(name, None)
+
+            # Allow optional/nullable foreign keys. If no value was supplied we
+            # leave the relation unset rather than trying to resolve or build a
+            # related object from a missing value (see #127, #96).
+            if value is None:
+                continue
+
             field = Model._meta.get_field(name)
 
             obj_id = cls.get_or_create_foreign_obj(field, value, extras, info)
@@ -651,6 +658,12 @@ class DjangoCudBase(Mutation):
         # Handle extras fields
         for name, extras in foreign_key_extras.items():
             value = input.get(name, None)
+
+            # As in create_obj: skip foreign keys that were not supplied, leaving
+            # the relation unchanged (see #127).
+            if value is None:
+                continue
+
             field = Model._meta.get_field(name)
 
             obj_id = cls.get_or_create_foreign_obj(field, value, extras, info)
