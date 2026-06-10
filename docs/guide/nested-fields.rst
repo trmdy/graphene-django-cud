@@ -50,6 +50,27 @@ which has to have been created before, typically via a
 If you don't have an existing type for creating a user, e.g. the "CreateUserInput" we used above,
 you can set the type to "auto", which will create a new type.
 
+Get or create
+^^^^^^^^^^^^^
+
+By default a new related object is created for every mutation. If you instead want to
+reuse an existing object when one already matches the supplied input — and only create a
+new one otherwise — add the ``get_or_create`` option. It accepts either a list of field
+names to match on, or ``True`` to match on every concrete field present in the input:
+
+.. code:: python
+
+    class CreateCatMutation(DjangoCreateMutation):
+        class Meta:
+            model = Cat
+            foreign_key_extras = {
+                "owner": {"type": "CreateUserInput", "get_or_create": ["username"]}
+            }
+
+With the configuration above, a cat created with ``owner: {username: "john", ...}`` reuses
+the existing user named ``john`` if one exists, and otherwise creates a new user from the
+provided input.
+
 
 Many to one extras
 ~~~~~~~~~~~~~~~~~~

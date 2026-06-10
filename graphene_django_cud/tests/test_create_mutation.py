@@ -958,6 +958,105 @@ class TestCreateMutationCustomFields(TestCase):
         self.assertEqual(0, result.data["createDog"]["dog"]["barkCount"])
 
 
+class TestCreateMutationForeignKeyGetOrCreate(TestCase):
+    GET_OR_CREATE_USER_TYPE_NAME = "GetOrCreateUserInput"
+
+    MUTATION = """
+        mutation CreateCat(
+            $input: CreateCatInput!
+        ){
+            createCat(input: $input){
+                cat{
+                    id
+                    name
+                    owner{
+                        id
+                        username
+                    }
+                }
+            }
+        }
+    """
+
+    def _build_schema(self, get_or_create):
+        # Registers a lightweight User input type and a Cat create mutation whose
+        # `owner` foreign key uses get-or-create with the given configuration.
+        from .schema import UserNode  # noqa: F401
+
+        type_name = TestCreateMutationForeignKeyGetOrCreate.GET_OR_CREATE_USER_TYPE_NAME
+
+        class CreateUserSubMutation(DjangoCreateMutation):
+            class Meta:
+                model = User
+                fields = ("username", "email")
+                type_name = TestCreateMutationForeignKeyGetOrCreate.GET_OR_CREATE_USER_TYPE_NAME
+
+        class CreateCatMutation(DjangoCreateMutation):
+            class Meta:
+                model = Cat
+                foreign_key_extras = {"owner": {"type": type_name, "get_or_create": get_or_create}}
+
+        class Mutations(graphene.ObjectType):
+            create_cat = CreateCatMutation.Field()
+
+        return Schema(query=DummyQuery, mutation=Mutations)
+
+    def test__get_or_create_list__reuses_existing_and_creates_when_missing(self):
+        # Regression/feature test for #128. With `get_or_create`, a foreign key
+        # extra reuses a matching existing object instead of always creating a
+        # new one (which would otherwise violate the unique `username`).
+        existing = UserFactory.create(username="alice", email="alice@example.com")
+        schema = self._build_schema(["username"])
+
+        # Matching username -> reuse the existing user (no new user created).
+        result = schema.execute(
+            self.MUTATION,
+            variables={
+                "input": {
+                    "name": "Felix",
+                    "owner": {"username": "alice", "email": "ignored@example.com"},
+                }
+            },
+            context=Dict(user=existing),
+        )
+        self.assertIsNone(result.errors)
+        self.assertEqual(1, User.objects.count())
+        self.assertEqual(existing, Cat.objects.get(name="Felix").owner)
+
+        # No match -> a new user is created.
+        result = schema.execute(
+            self.MUTATION,
+            variables={
+                "input": {
+                    "name": "Tom",
+                    "owner": {"username": "bob", "email": "bob@example.com"},
+                }
+            },
+            context=Dict(user=existing),
+        )
+        self.assertIsNone(result.errors)
+        self.assertEqual(2, User.objects.count())
+        self.assertEqual("bob", Cat.objects.get(name="Tom").owner.username)
+
+    def test__get_or_create_true__matches_on_all_provided_fields(self):
+        existing = UserFactory.create(username="alice", email="alice@example.com")
+        schema = self._build_schema(True)
+
+        result = schema.execute(
+            self.MUTATION,
+            variables={
+                "input": {
+                    "name": "Felix",
+                    "owner": {"username": "alice", "email": "alice@example.com"},
+                }
+            },
+            context=Dict(user=existing),
+        )
+        self.assertIsNone(result.errors)
+        self.assertEqual(1, User.objects.count())
+        self.assertEqual(existing, Cat.objects.get(name="Felix").owner)
+
+
 class TestCreateWithManyToManyThroughModel(TestCase):
     def test__creating_a_related_entity_with_a_through_model__works_as_intended(self):
         # This registers the UserNode type
