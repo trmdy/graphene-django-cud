@@ -958,6 +958,100 @@ class TestCreateMutationCustomFields(TestCase):
         self.assertEqual(0, result.data["createDog"]["dog"]["barkCount"])
 
 
+class TestCreateMutationBeforeSave(TestCase):
+    def test__before_save__can_set_required_field_excluded_from_input(self):
+        # Regression test for #83. `before_save` must run *before* the object is
+        # first persisted, so that a required field assigned there does not trip
+        # a NOT NULL constraint during the initial save.
+        from .schema import UserNode  # noqa: F401
+
+        user = UserFactory.create()
+
+        class CreateCatMutation(DjangoCreateMutation):
+            class Meta:
+                model = Cat
+                exclude = ("owner",)
+
+            @classmethod
+            def before_save(cls, root, info, input, obj):
+                obj.owner = user
+                return obj
+
+        class Mutations(graphene.ObjectType):
+            create_cat = CreateCatMutation.Field()
+
+        schema = Schema(query=DummyQuery, mutation=Mutations)
+        mutation = """
+            mutation CreateCat(
+                $input: CreateCatInput!
+            ){
+                createCat(input: $input){
+                    cat{
+                        id
+                        name
+                        owner{
+                            id
+                        }
+                    }
+                }
+            }
+        """
+        result = schema.execute(
+            mutation,
+            variables={"input": {"name": "Garfield"}},
+            context=Dict(user=user),
+        )
+
+        self.assertIsNone(result.errors)
+        self.assertEqual(1, Cat.objects.count())
+
+        cat = Cat.objects.first()
+        self.assertEqual(user, cat.owner)
+        self.assertEqual("Garfield", cat.name)
+
+    def test__before_save__in_place_mutation_without_return_is_persisted(self):
+        # `before_save` documents that returning the object is optional. An
+        # in-place mutation (returning None) must still be persisted.
+        from .schema import UserNode  # noqa: F401
+
+        user = UserFactory.create()
+
+        class CreateCatMutation(DjangoCreateMutation):
+            class Meta:
+                model = Cat
+                exclude = ("owner",)
+
+            @classmethod
+            def before_save(cls, root, info, input, obj):
+                obj.owner = user
+                # Intentionally returns None.
+
+        class Mutations(graphene.ObjectType):
+            create_cat = CreateCatMutation.Field()
+
+        schema = Schema(query=DummyQuery, mutation=Mutations)
+        mutation = """
+            mutation CreateCat(
+                $input: CreateCatInput!
+            ){
+                createCat(input: $input){
+                    cat{
+                        id
+                    }
+                }
+            }
+        """
+        result = schema.execute(
+            mutation,
+            variables={"input": {"name": "Garfield"}},
+            context=Dict(user=user),
+        )
+
+        self.assertIsNone(result.errors)
+        self.assertEqual(1, Cat.objects.count())
+        self.assertEqual(user, Cat.objects.first().owner)
+
+
 class TestCreateWithManyToManyThroughModel(TestCase):
     def test__creating_a_related_entity_with_a_through_model__works_as_intended(self):
         # This registers the UserNode type

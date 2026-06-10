@@ -280,6 +280,7 @@ class DjangoCudBase(Mutation):
         one_to_one_extras,
         field_name_mappings,
         Model,
+        before_save=None,
     ):
         many_to_many_to_add = {}
         many_to_many_to_remove = {}
@@ -404,6 +405,16 @@ class DjangoCudBase(Mutation):
         obj = Model(**model_field_values)
 
         cls.before_create_obj(info, input, obj)
+
+        # The `before_save` hook (when supplied by the calling mutation) must run
+        # before the object is first persisted. Otherwise a field it sets — e.g. a
+        # required foreign key excluded from the input — would trip a database
+        # constraint during this initial save (see #83). Returning the object is
+        # optional; an in-place mutation is honoured as well.
+        if before_save is not None:
+            updated_obj = before_save(obj)
+            if updated_obj is not None:
+                obj = updated_obj
 
         obj.save()
 

@@ -229,11 +229,8 @@ class DjangoCreateMutation(DjangoCudBase):
                 cls._meta.one_to_one_extras,
                 cls._meta.field_name_mappings,
                 Model,
+                before_save=lambda obj: cls.before_save(root, info, input, obj),
             )
-            updated_obj = cls.before_save(root, info, input, obj)
-            if updated_obj:
-                updated_obj.save()
-                obj = updated_obj
 
         return_data = {cls._meta.return_field_name: obj}
         cls.after_mutate(root, info, input, obj, return_data)
